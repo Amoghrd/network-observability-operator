@@ -23,7 +23,7 @@ Click the "Auto-generate release note" button.
 
 ### Operator
 
-Once all sub-components are released, we can proceed with the operator.
+Once all sub-components are released (or have a release candidate), we can proceed with the operator.
 
 ```bash
 version="1.2.3-rc4" # Set desired operator version - CAREFUL, no leading "v" here
@@ -31,17 +31,18 @@ plgv="v0.1.2-rc0" # Set console plugin released version
 flpv="v0.1.2-rc0" # Set flowlogs-pipeline released version
 
 vv=v$version
+test_branch=test-$vv
 
 VERSION="$version" PLG_VERSION="$plgv" FLP_VERSION="$flpv" IMAGE_TAG_BASE="quay.io/netobserv/network-observability-operator" make bundle
 
 git commit -a -m "Prepare release $vv"
 # Push to a test branch, and tag for release
-git push upstream HEAD:$vv
-git tag -a "$vv" -m "$vv"
+git push upstream HEAD:$test_branch
+git tag -a "$version" -m "$version"
 git push upstream --tags
 ```
 
-The release script should be triggered (check github actions).
+The release script should be triggered ([check github actions](https://github.com/netobserv/network-observability-operator/actions)).
 
 At this point, you can test the bundle / catalog on your cluster:
 
@@ -52,7 +53,7 @@ VERSION="$version" IMAGE_TAG_BASE="quay.io/$user/network-observability-operator"
 
 # Check everything is ok, then push to main and delete the test branch
 git push upstream HEAD:main
-git push upstream :$vv
+git push upstream :$test_branch
 ```
 
 
