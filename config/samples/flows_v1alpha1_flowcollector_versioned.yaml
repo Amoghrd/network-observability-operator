@@ -29,7 +29,7 @@ spec:
     staticLabels:
       app: netobserv-flowcollector
   consolePlugin:
-    image: 'quay.io/netobserv/network-observability-console-plugin:v0.1.2-rc0'
+    image: 'quay.io/netobserv/network-observability-console-plugin:v0.1.2-rc1'
     imagePullPolicy: IfNotPresent
     port: 9001
     logLevel: info

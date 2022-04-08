@@ -26,9 +26,12 @@ Click the "Auto-generate release note" button.
 Once all sub-components are released (or have a release candidate), we can proceed with the operator.
 
 ```bash
-version="1.2.3-rc4" # Set desired operator version - CAREFUL, no leading "v" here
-plgv="v0.1.2-rc0" # Set console plugin released version
-flpv="v0.1.2-rc0" # Set flowlogs-pipeline released version
+# Set desired operator version - CAREFUL, no leading "v" here
+version="0.1.2-rc0"
+# Set console plugin released version
+plgv="v0.1.2-rc0"
+# Set flowlogs-pipeline released version
+flpv="v0.1.2-rc0"
 
 vv=v$version
 test_branch=test-$vv

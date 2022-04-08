@@ -572,7 +572,7 @@ spec:
                     - maxReplicas
                     type: object
                   image:
-                    default: quay.io/netobserv/network-observability-console-plugin:v0.1.2-rc0
+                    default: quay.io/netobserv/network-observability-console-plugin:v0.1.2-rc1
                     description: Image is the plugin image (including domain and tag)
                     type: string
                   imagePullPolicy:

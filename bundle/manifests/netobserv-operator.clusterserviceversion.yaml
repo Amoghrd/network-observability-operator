@@ -15,7 +15,7 @@ metadata:
               "namespace": "openshift-network-operator"
             },
             "consolePlugin": {
-              "image": "quay.io/netobserv/network-observability-console-plugin:v0.1.2-rc0",
+              "image": "quay.io/netobserv/network-observability-console-plugin:v0.1.2-rc1",
               "imagePullPolicy": "IfNotPresent",
               "logLevel": "info",
               "port": 9001,
@@ -58,13 +58,13 @@ metadata:
       ]
     capabilities: Basic Install
     categories: Monitoring
-    containerImage: quay.io/netobserv/network-observability-operator:0.1.2-rc0
-    createdAt: "2022-04-07T15:29:10Z"
+    containerImage: quay.io/netobserv/network-observability-operator:0.1.2-rc1
+    createdAt: "2022-04-08T08:10:16Z"
     description: A network observability operator based on netflows (IPFIX) for OVN
     operators.operatorframework.io/builder: operator-sdk-v1.16.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/netobserv/network-observability-operator
-  name: netobserv-operator.v0.1.2-rc0
+  name: netobserv-operator.v0.1.2-rc1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -276,14 +276,14 @@ spec:
             matchLabels:
               app: network-observability-operator
               control-plane: controller-manager
-              version: 0.1.2-rc0
+              version: 0.1.2-rc1
           strategy: {}
           template:
             metadata:
               labels:
                 app: network-observability-operator
                 control-plane: controller-manager
-                version: 0.1.2-rc0
+                version: 0.1.2-rc1
             spec:
               containers:
               - args:
@@ -304,7 +304,7 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
-                image: quay.io/netobserv/network-observability-operator:0.1.2-rc0
+                image: quay.io/netobserv/network-observability-operator:0.1.2-rc1
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:
@@ -403,4 +403,4 @@ spec:
   provider:
     name: Red Hat
     url: https://www.redhat.com
-  version: 0.1.2-rc0
+  version: 0.1.2-rc1
