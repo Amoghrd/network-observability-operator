@@ -35,17 +35,21 @@ spec:
     address: "kafka-cluster-kafka-bootstrap.network-observability"
     topic: "network-flows"
   loki:
-    url: 'http://loki:3100/'
+    url: 'https://loki.network-observability.svc:3100/'
     batchWait: 1s
     batchSize: 102400
     minBackoff: 1s
     maxBackoff: 300s
     maxRetries: 10
+    usetls: true
+    cafile:
+      configmap: loki
+      configmapkey: service-ca.crt
     staticLabels:
       app: netobserv-flowcollector
   consolePlugin:
     register: true
-    image: 'quay.io/netobserv/network-observability-console-plugin:main'
+    image: 'quay.io/ocazade0/network-observability-console-plugin:foo9'
     imagePullPolicy: IfNotPresent
     port: 9001
     logLevel: info
