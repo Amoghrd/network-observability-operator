@@ -26,8 +26,10 @@ const configMapName = "flowlogs-pipeline-config"
 const configVolume = "config-volume"
 const configPath = "/etc/flowlogs-pipeline"
 const configFile = "config.json"
-const tlsLokiVolume = "lokica"
-const tlsLokiPath = "/var/loki-cert/"
+// const tlsLokiVolume = "lokica"
+// const tlsLokiPath = "/var/loki-cert/"
+const lokiCerts = "loki-certs"
+const kafkaCerts = "kafka-certs"
 
 const (
 	healthServiceName       = "health"
@@ -146,17 +148,32 @@ func (b *builder) podTemplate(hostNetwork bool, configDigest string) corev1.PodT
 		ContainerPort: b.desired.PrometheusPort,
 	})
 
+	volumeMounts := []corev1.VolumeMount{{
+		MountPath: configPath,
+		Name:      configVolume,
+	}}
+	volumes := []corev1.Volume{{
+		Name: configVolume,
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: configMapName + b.confKindSuffix,
+				},
+			},
+		},
+	}}
+	if b.desiredKafka.Enable {
+		volumes, volumeMounts = helper.AppendCertVolumes(volumes, volumeMounts, &b.desiredKafka.TLS, kafkaCerts)
+	}
+
 	container := corev1.Container{
 		Name:            constants.FLPName + b.confKindSuffix,
 		Image:           b.desired.Image,
 		ImagePullPolicy: corev1.PullPolicy(b.desired.ImagePullPolicy),
 		Args:            []string{fmt.Sprintf(`--config=%s/%s`, configPath, configFile)},
 		Resources:       *b.desired.Resources.DeepCopy(),
-		VolumeMounts: []corev1.VolumeMount{{
-			MountPath: configPath,
-			Name:      configVolume,
-		}},
-		Ports: ports,
+		VolumeMounts:    volumeMounts,
+		Ports:           ports,
 	}
 	if b.desired.EnableKubeProbes {
 		container.LivenessProbe = &corev1.Probe{
@@ -316,10 +333,17 @@ func (b *builder) buildPipelineConfig() ([]config.Stage, []config.StageParam) {
 	}
 
 	if b.confKind == ConfKafkaIngester {
-		pipeline = pipeline.EncodeKafka("kafka-write", api.EncodeKafka{
+		kafkaConf := api.EncodeKafka{
 			Address: b.desiredKafka.Address,
 			Topic:   b.desiredKafka.Topic,
-		})
+			TLS: &api.ClientTLS{
+				InsecureSkipVerify: b.desiredKafka.TLS.InsecureSkipVerify,
+				CACertPath:         helper.GetCACertPath(&b.desiredKafka.TLS, kafkaCerts),
+				UserCertPath:       helper.GetUserCertPath(&b.desiredKafka.TLS, kafkaCerts),
+				UserKeyPath:        helper.GetUserKeyPath(&b.desiredKafka.TLS, kafkaCerts),
+			},
+		}
+		pipeline = pipeline.EncodeKafka("kafka-write", kafkaConf)
 	} else {
 		b.addTransformStages(&pipeline)
 	}

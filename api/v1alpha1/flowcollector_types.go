@@ -186,6 +186,10 @@ type FlowCollectorKafka struct {
 	//+kubebuilder:default:=""
 	// Kafka topic to use. It must exist, NetObserv will not create it.
 	Topic string `json:"topic"`
+
+	// TLS client configuration.
+	// +optional
+	TLS ClientTLS `json:"tls"`
 }
 
 // FlowCollectorFLP defines the desired flowlogs-pipeline state of FlowCollector
@@ -416,6 +420,45 @@ type OVNKubernetesConfig struct {
 	// Name of the container to configure for IPFIX.
 	ContainerName string `json:"containerName,omitempty"`
 }
+
+type CertificateReference struct {
+	//+kubebuilder:validation:Enum=configmap;secret
+	// Reference type: configmap or secret
+	Type string `json:"type,omitempty"`
+
+	// Name of the ConfigMap or Secret containing certificates
+	Name string `json:"name,omitempty"`
+
+	// Certificate file name within the ConfigMap / Secret
+	CertFile string `json:"certFile,omitempty"`
+
+	// Certificate private key file name within the ConfigMap / Secret. Omit when the key is not necessary.
+	// +optional
+	CertKey string `json:"certKey,omitempty"`
+}
+
+// ClientTLS defines TLS client configuration
+type ClientTLS struct {
+	//+kubebuilder:default:=false
+	// Skip client-side verification of the server certificate
+	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
+
+	// CA certificate reference
+	CACert CertificateReference `json:"caCert,omitempty"`
+
+	// User certificate reference
+	// +optional
+	UserCert CertificateReference `json:"userCert,omitempty"`
+}
+
+// // ServerTLS defines TLS server configuration
+// type ServerTLS struct {
+// 	// Path to the server certificate to enable TLS.
+// 	CertPath string `json:"certPath,omitempty"`
+
+// 	// Path to the private key to enable TLS.
+// 	PrivateKeyPath string `json:"privateKeyPath,omitempty"`
+// }
 
 // FlowCollectorStatus defines the observed state of FlowCollector
 type FlowCollectorStatus struct {

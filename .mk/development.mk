@@ -26,9 +26,17 @@ undeploy-loki: ## Undeploy loki.
 deploy-kafka:
 	@echo -e "\n==> Deploy kafka"
 	kubectl create namespace $(NAMESPACE)  --dry-run=client -o yaml | kubectl apply -f -
-	kubectl create -f "https://strimzi.io/install/latest?namespace="$(NAMESPACE) -n $(NAMESPACE)
-	kubectl create -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-cluster.yaml" -n $(NAMESPACE)
-	kubectl create -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-topic.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://strimzi.io/install/latest?namespace="$(NAMESPACE) -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-cluster.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-topic.yaml" -n $(NAMESPACE)
+
+.PHONY: deploy-kafka-tls
+deploy-kafka-tls:
+	@echo -e "\n==> Deploy kafka"
+	kubectl create namespace $(NAMESPACE)  --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -f "https://strimzi.io/install/latest?namespace="$(NAMESPACE) -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-tls.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-topic.yaml" -n $(NAMESPACE)
 
 .PHONY: undeploy-kafka
 undeploy-kafka: ## Undeploy kafka.
