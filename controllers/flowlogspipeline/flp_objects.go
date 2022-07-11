@@ -26,8 +26,7 @@ const configMapName = "flowlogs-pipeline-config"
 const configVolume = "config-volume"
 const configPath = "/etc/flowlogs-pipeline"
 const configFile = "config.json"
-// const tlsLokiVolume = "lokica"
-// const tlsLokiPath = "/var/loki-cert/"
+
 const lokiCerts = "loki-certs"
 const kafkaCerts = "kafka-certs"
 
@@ -162,7 +161,11 @@ func (b *builder) podTemplate(hostNetwork bool, configDigest string) corev1.PodT
 			},
 		},
 	}}
-	if b.desiredKafka.Enable {
+
+	if b.desiredLoki != nil && b.desiredLoki.TLS.Enable {
+		volumes, volumeMounts = helper.AppendCertVolumes(volumes, volumeMounts, &b.desiredLoki.TLS, lokiCerts)
+	}
+	if b.desiredKafka != nil && b.desiredKafka.Enable && b.desiredKafka.TLS.Enable {
 		volumes, volumeMounts = helper.AppendCertVolumes(volumes, volumeMounts, &b.desiredKafka.TLS, kafkaCerts)
 	}
 
@@ -201,36 +204,6 @@ func (b *builder) podTemplate(hostNetwork bool, configDigest string) corev1.PodT
 	dnsPolicy := corev1.DNSClusterFirst
 	if hostNetwork {
 		dnsPolicy = corev1.DNSClusterFirstWithHostNet
-	}
-
-	volumes := []corev1.Volume{{
-		Name: configVolume,
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: configMapName + b.confKindSuffix,
-				},
-			},
-		},
-	}}
-
-	if b.desiredLoki != nil && b.desiredLoki.UseTLS {
-		TLSLokiVolume := corev1.Volume{
-			Name: tlsLokiVolume,
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: b.desiredLoki.CAFile.ConfigMap,
-					},
-				},
-			},
-		}
-		tlsLokiVolumeMount := corev1.VolumeMount{
-			MountPath: tlsLokiPath,
-			Name:      tlsLokiVolume,
-		}
-		volumes = append(volumes, TLSLokiVolume)
-		container.VolumeMounts = append(container.VolumeMounts, tlsLokiVolumeMount)
 	}
 
 	return corev1.PodTemplateSpec{
@@ -284,13 +257,13 @@ func (b *builder) addTransformStages(lastStage *config.PipelineBuilderStage) {
 		lokiWrite.URL = b.desiredLoki.URL
 		lokiWrite.TimestampLabel = "TimeFlowEndMs"
 		lokiWrite.TimestampScale = "1ms"
-		if b.desiredLoki.UseTLS {
+		if b.desiredLoki.TLS.Enable {
 			lokiWrite.ClientConfig = &promConfig.HTTPClientConfig{
 				ProxyURL:        promConfig.URL{},
 				FollowRedirects: true,
 				TLSConfig: promConfig.TLSConfig{
-					InsecureSkipVerify: true,
-					CAFile:             tlsLokiPath + b.desiredLoki.CAFile.ConfigMapKey,
+					InsecureSkipVerify: b.desiredLoki.TLS.InsecureSkipVerify,
+					CAFile:             helper.GetCACertPath(&b.desiredLoki.TLS, lokiCerts),
 				},
 			}
 		}
@@ -336,12 +309,14 @@ func (b *builder) buildPipelineConfig() ([]config.Stage, []config.StageParam) {
 		kafkaConf := api.EncodeKafka{
 			Address: b.desiredKafka.Address,
 			Topic:   b.desiredKafka.Topic,
-			TLS: &api.ClientTLS{
+		}
+		if b.desiredKafka.TLS.Enable {
+			kafkaConf.TLS = &api.ClientTLS{
 				InsecureSkipVerify: b.desiredKafka.TLS.InsecureSkipVerify,
 				CACertPath:         helper.GetCACertPath(&b.desiredKafka.TLS, kafkaCerts),
 				UserCertPath:       helper.GetUserCertPath(&b.desiredKafka.TLS, kafkaCerts),
 				UserKeyPath:        helper.GetUserKeyPath(&b.desiredKafka.TLS, kafkaCerts),
-			},
+			}
 		}
 		pipeline = pipeline.EncodeKafka("kafka-write", kafkaConf)
 	} else {

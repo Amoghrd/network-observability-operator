@@ -272,27 +272,15 @@ type FlowCollectorHPA struct {
 	Metrics []ascv2.MetricSpec `json:"metrics"`
 }
 
-type FlowCollectorLokiCAFile struct {
-	// Name of the ConfigMap containing the CA certificate
-	ConfigMap string `json:"configmap,omitempty"`
-
-	// Name of the key in the ConfigMap containing the CA certificate
-	ConfigMapKey string `json:"configmapkey,omitempty"`
-}
-
 // FlowCollectorLoki defines the desired state for FlowCollector's Loki client
 type FlowCollectorLoki struct {
 	//+kubebuilder:default:="http://loki:3100/"
 	// URL is the address of an existing Loki service to push the flows to.
 	URL string `json:"url,omitempty"`
 
-	//+kubebuilder:default:=false
-	// UseTLS to connect to
-	UseTLS bool `json:"usetls,omitempty"`
-
 	//+kubebuilder:validation:optional
-	// Configuration of the loki deployment custom CA certificate
-	CAFile FlowCollectorLokiCAFile `json:"cafile,omitempty"`
+	// TLS client configuration.
+	TLS ClientTLS `json:"tls"`
 
 	//+kubebuilder:validation:optional
 	// QuerierURL specifies the address of the Loki querier service, in case it is different from the
@@ -439,6 +427,10 @@ type CertificateReference struct {
 
 // ClientTLS defines TLS client configuration
 type ClientTLS struct {
+	//+kubebuilder:default:=false
+	// Enable TLS
+	Enable bool `json:"enable,omitempty"`
+
 	//+kubebuilder:default:=false
 	// Skip client-side verification of the server certificate
 	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`

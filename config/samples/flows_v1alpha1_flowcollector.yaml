@@ -35,6 +35,7 @@ spec:
     address: "kafka-cluster-kafka-bootstrap.network-observability"
     topic: "network-flows"
     tls:
+      enable: true
       caCert:
         type: secret
         name: kafka-cluster-cluster-ca-cert
@@ -51,10 +52,12 @@ spec:
     minBackoff: 1s
     maxBackoff: 300s
     maxRetries: 10
-    usetls: true
-    cafile:
-      configmap: loki
-      configmapkey: service-ca.crt
+    tls:
+      enable: true
+      caCert:
+        type: configmap
+        name: loki
+        certFile: service-ca.crt
     staticLabels:
       app: netobserv-flowcollector
   consolePlugin:

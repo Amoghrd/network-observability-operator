@@ -30,8 +30,7 @@ const configPath = "/opt/app-root/"
 // any external configuration change
 const PodConfigurationDigest = "flows.netobserv.io/" + configMapName
 
-const tlsLokiVolume = "lokica"
-const tlsLokiPath = "/var/loki-cert/"
+const lokiCerts = "loki-certs"
 
 type builder struct {
 	namespace   string
@@ -151,25 +150,11 @@ func (b *builder) podTemplate(cmDigest string) *corev1.PodTemplateSpec {
 		"-frontend-config", configPath + configFile,
 	}
 
-	if b.desiredLoki != nil && b.desiredLoki.UseTLS {
-		TLSLokiVolume := corev1.Volume{
-			Name: tlsLokiVolume,
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: b.desiredLoki.CAFile.ConfigMap,
-					},
-				},
-			},
-		}
-		tlsLokiVolumeMount := corev1.VolumeMount{
-			MountPath: tlsLokiPath,
-			Name:      tlsLokiVolume,
-		}
-		volumes = append(volumes, TLSLokiVolume)
-		volumeMounts = append(volumeMounts, tlsLokiVolumeMount)
+	if b.desiredLoki != nil && b.desiredLoki.TLS.Enable {
+		volumes, volumeMounts = helper.AppendCertVolumes(volumes, volumeMounts, &b.desiredLoki.TLS, lokiCerts)
+		caPath := helper.GetCACertPath(&b.desiredLoki.TLS, lokiCerts)
 		args = append(args, "--loki-ca-path")
-		args = append(args, tlsLokiPath+b.desiredLoki.CAFile.ConfigMapKey)
+		args = append(args, caPath)
 	}
 
 	return &corev1.PodTemplateSpec{

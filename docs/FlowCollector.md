@@ -2632,6 +2632,15 @@ TLS client configuration.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>enable</b></td>
+        <td>boolean</td>
+        <td>
+          Enable TLS<br/>
+          <br/>
+            <i>Default</i>: false<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>insecureSkipVerify</b></td>
         <td>boolean</td>
         <td>
@@ -2768,6 +2777,13 @@ Settings related to the Loki client, used as a flow store.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#flowcollectorspeclokitls">tls</a></b></td>
+        <td>object</td>
+        <td>
+          TLS client configuration.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
         <td><b>batchSize</b></td>
         <td>integer</td>
         <td>
@@ -2785,13 +2801,6 @@ Settings related to the Loki client, used as a flow store.
           BatchWait is max time to wait before sending a batch<br/>
           <br/>
             <i>Default</i>: 1s<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#flowcollectorspeclokicafile">cafile</a></b></td>
-        <td>object</td>
-        <td>
-          Configuration of the loki deployment custom CA certificate<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -2857,25 +2866,16 @@ Settings related to the Loki client, used as a flow store.
             <i>Default</i>: http://loki:3100/<br/>
         </td>
         <td>false</td>
-      </tr><tr>
-        <td><b>usetls</b></td>
-        <td>boolean</td>
-        <td>
-          UseTLS to connect to<br/>
-          <br/>
-            <i>Default</i>: false<br/>
-        </td>
-        <td>false</td>
       </tr></tbody>
 </table>
 
 
-### FlowCollector.spec.loki.cafile
+### FlowCollector.spec.loki.tls
 <sup><sup>[↩ Parent](#flowcollectorspecloki)</sup></sup>
 
 
 
-Configuration of the loki deployment custom CA certificate
+TLS client configuration.
 
 <table>
     <thead>
@@ -2887,17 +2887,135 @@ Configuration of the loki deployment custom CA certificate
         </tr>
     </thead>
     <tbody><tr>
-        <td><b>configmap</b></td>
-        <td>string</td>
+        <td><b><a href="#flowcollectorspeclokitlscacert">caCert</a></b></td>
+        <td>object</td>
         <td>
-          Name of the ConfigMap containing the CA certificate<br/>
+          CA certificate reference<br/>
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b>configmapkey</b></td>
+        <td><b>enable</b></td>
+        <td>boolean</td>
+        <td>
+          Enable TLS<br/>
+          <br/>
+            <i>Default</i>: false<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>insecureSkipVerify</b></td>
+        <td>boolean</td>
+        <td>
+          Skip client-side verification of the server certificate<br/>
+          <br/>
+            <i>Default</i>: false<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#flowcollectorspeclokitlsusercert">userCert</a></b></td>
+        <td>object</td>
+        <td>
+          User certificate reference<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FlowCollector.spec.loki.tls.caCert
+<sup><sup>[↩ Parent](#flowcollectorspeclokitls)</sup></sup>
+
+
+
+CA certificate reference
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>certFile</b></td>
         <td>string</td>
         <td>
-          Name of the key in the ConfigMap containing the CA certificate<br/>
+          Certificate file name within the ConfigMap / Secret<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>certKey</b></td>
+        <td>string</td>
+        <td>
+          Certificate private key file name within the ConfigMap / Secret. Omit when the key is not necessary.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the ConfigMap or Secret containing certificates<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>enum</td>
+        <td>
+          Reference type: configmap or secret<br/>
+          <br/>
+            <i>Enum</i>: configmap, secret<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### FlowCollector.spec.loki.tls.userCert
+<sup><sup>[↩ Parent](#flowcollectorspeclokitls)</sup></sup>
+
+
+
+User certificate reference
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>certFile</b></td>
+        <td>string</td>
+        <td>
+          Certificate file name within the ConfigMap / Secret<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>certKey</b></td>
+        <td>string</td>
+        <td>
+          Certificate private key file name within the ConfigMap / Secret. Omit when the key is not necessary.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the ConfigMap or Secret containing certificates<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>enum</td>
+        <td>
+          Reference type: configmap or secret<br/>
+          <br/>
+            <i>Enum</i>: configmap, secret<br/>
         </td>
         <td>false</td>
       </tr></tbody>
