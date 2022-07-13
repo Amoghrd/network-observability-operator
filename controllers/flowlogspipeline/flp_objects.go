@@ -283,6 +283,18 @@ func (b *builder) addTransformStages(lastStage *config.PipelineBuilderStage) {
 	})
 }
 
+func (b *builder) getKafkaTLS() *api.ClientTLS {
+	if b.desiredKafka.TLS.Enable {
+		return &api.ClientTLS{
+			InsecureSkipVerify: b.desiredKafka.TLS.InsecureSkipVerify,
+			CACertPath:         helper.GetCACertPath(&b.desiredKafka.TLS, kafkaCerts),
+			UserCertPath:       helper.GetUserCertPath(&b.desiredKafka.TLS, kafkaCerts),
+			UserKeyPath:        helper.GetUserKeyPath(&b.desiredKafka.TLS, kafkaCerts),
+		}
+	}
+	return nil
+}
+
 func (b *builder) buildPipelineConfig() ([]config.Stage, []config.StageParam) {
 	var pipeline config.PipelineBuilderStage
 	if b.confKind == ConfKafkaTransformer {
@@ -291,6 +303,7 @@ func (b *builder) buildPipelineConfig() ([]config.Stage, []config.StageParam) {
 			Topic:   b.desiredKafka.Topic,
 			GroupId: b.confKind, // Without groupid, each message is delivered to each consumers
 			Decoder: api.Decoder{Type: "json"},
+			TLS:     b.getKafkaTLS(),
 		})
 	} else if b.portProtocol == corev1.ProtocolUDP {
 		// UDP Port: IPFIX collector with JSON decoder
@@ -306,19 +319,11 @@ func (b *builder) buildPipelineConfig() ([]config.Stage, []config.StageParam) {
 	}
 
 	if b.confKind == ConfKafkaIngester {
-		kafkaConf := api.EncodeKafka{
+		pipeline = pipeline.EncodeKafka("kafka-write", api.EncodeKafka{
 			Address: b.desiredKafka.Address,
 			Topic:   b.desiredKafka.Topic,
-		}
-		if b.desiredKafka.TLS.Enable {
-			kafkaConf.TLS = &api.ClientTLS{
-				InsecureSkipVerify: b.desiredKafka.TLS.InsecureSkipVerify,
-				CACertPath:         helper.GetCACertPath(&b.desiredKafka.TLS, kafkaCerts),
-				UserCertPath:       helper.GetUserCertPath(&b.desiredKafka.TLS, kafkaCerts),
-				UserKeyPath:        helper.GetUserKeyPath(&b.desiredKafka.TLS, kafkaCerts),
-			}
-		}
-		pipeline = pipeline.EncodeKafka("kafka-write", kafkaConf)
+			TLS:     b.getKafkaTLS(),
+		})
 	} else {
 		b.addTransformStages(&pipeline)
 	}
