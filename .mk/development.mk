@@ -24,31 +24,31 @@ undeploy-loki: ## Undeploy loki.
 
 .PHONY: deploy-kafka
 deploy-kafka:
-	@echo -e "\n==> Deploy kafka"
+	@echo -e "\n==> Deploy default Kafka. Get more help on https://github.com/netobserv/documents/blob/main/kafka.md"
 	kubectl create namespace $(NAMESPACE)  --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f "https://strimzi.io/install/latest?namespace="$(NAMESPACE) -n $(NAMESPACE)
-	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-cluster.yaml" -n $(NAMESPACE)
-	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-topic.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/metrics-config.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/default.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/topic.yaml" -n $(NAMESPACE)
 
 .PHONY: deploy-kafka-tls
 deploy-kafka-tls:
-	@echo -e "\n==> Deploy kafka"
+	@echo -e "\n==> Deploy Kafka with mTLS. Get more help on https://github.com/netobserv/documents/blob/main/kafka.md"
 	kubectl create namespace $(NAMESPACE)  --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f "https://strimzi.io/install/latest?namespace="$(NAMESPACE) -n $(NAMESPACE)
-	kubectl apply -f "../netobserv-documents/examples/kafka-tls.yaml" -n $(NAMESPACE)
-#	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-tls.yaml" -n $(NAMESPACE)
-	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-topic.yaml" -n $(NAMESPACE)
-	kubectl apply -f "../netobserv-documents/examples/kafka-user.yaml" -n $(NAMESPACE)
-#	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-user.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/metrics-config.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/tls.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/topic.yaml" -n $(NAMESPACE)
+	kubectl apply -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/user.yaml" -n $(NAMESPACE)
 	kubectl wait --timeout=180s --for=condition=ready kafkauser flp-kafka -n $(NAMESPACE)
 
 .PHONY: undeploy-kafka
 undeploy-kafka: ## Undeploy kafka.
 	@echo -e "\n==> Undeploy kafka"
-	kubectl delete kafkauser flp-kafka -n $(NAMESPACE) || true
-	kubectl delete -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-topic.yaml" -n $(NAMESPACE) || true
-	kubectl delete -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka-cluster.yaml" -n $(NAMESPACE) || true
-	kubectl delete -f "https://strimzi.io/install/latest?namespace="$(NAMESPACE) -n $(NAMESPACE) || true
+	kubectl delete -f "https://raw.githubusercontent.com/netobserv/documents/main/examples/kafka/topic.yaml" -n $(NAMESPACE) --ignore-not-found=true
+	kubectl delete kafkauser flp-kafka -n $(NAMESPACE) --ignore-not-found=true
+	kubectl delete kafka kafka-cluster -n $(NAMESPACE) --ignore-not-found=true
+	kubectl delete -f "https://strimzi.io/install/latest?namespace="$(NAMESPACE) -n $(NAMESPACE) --ignore-not-found=true
 
 .PHONY: fix-ebpf-kafka-tls
 fix-ebpf-kafka-tls:
